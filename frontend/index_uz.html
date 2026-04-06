@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PyAnalyzer — Python kod tahlil tizimi</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0e1a;
+      --bg2: #0f1525;
+      --bg3: #141b2d;
+      --card: #161e30;
+      --card2: #1c2540;
+      --border: #1e2d4a;
+      --border2: #253558;
+      --accent: #4f8ef7;
+      --accent2: #7c3aed;
+      --accent3: #06b6d4;
+      --green: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --yellow: #eab308;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+    /* Layout */
+    .app { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .logo h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .logo p {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--mono);
+      margin-top: 2px;
+    }
+
+    .nav { padding: 16px 12px; flex: 1; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      text-transform: uppercase;
+      padding: 0 8px;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text2);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover { background: var(--card); color: var(--text); }
+
+    .nav-item.active {
+      background: rgba(79,142,247,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(79,142,247,0.2);
+    }
+
+    .nav-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .nav-item.active .nav-icon { background: rgba(79,142,247,0.15); }
+    .nav-item:not(.active) .nav-icon { background: var(--bg3); }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 32px;
+      max-width: calc(100vw - 240px);
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h2 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .page-header p {
+      color: var(--text2);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      margin-bottom: 14px;
+    }
+
+    /* Textarea */
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 16px;
+      resize: vertical;
+      min-height: 280px;
+      line-height: 1.7;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--text3); }
+
+    /* Input */
+    input[type="text"], input[type="url"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus, input[type="url"]:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--text3); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #3b7de8; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: var(--card2);
+      color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+
+    .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+    /* File drop zone */
+    .dropzone {
+      border: 2px dashed var(--border2);
+      border-radius: 12px;
+      padding: 48px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg);
+    }
+
+    .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: rgba(79,142,247,0.04); }
+
+    .dropzone-icon { font-size: 40px; margin-bottom: 12px; }
+
+    .dropzone p { color: var(--text2); font-size: 14px; }
+    .dropzone p strong { color: var(--accent); }
+    .dropzone small { color: var(--text3); font-family: var(--mono); font-size: 12px; display: block; margin-top: 6px; }
+
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.25);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      margin-top: 12px;
+    }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(79,142,247,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    .loading-bar {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    @keyframes loading { 0%{transform:translateX(-100%)} 100%{transform:translateX(300%)} }
+    .loading-bar-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: loading 1.2s ease-in-out infinite;
+    }
+
+    /* Results */
+    .results-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .stat-num {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .stat-card .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      margin-top: 4px;
+    }
+
+    .stat-card.red .stat-num { color: var(--red); }
+    .stat-card.orange .stat-num { color: var(--orange); }
+    .stat-card.green .stat-num { color: var(--green); }
+    .stat-card.blue .stat-num { color: var(--accent); }
+
+    /* Issue item */
+    .issue-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .issue-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      transition: border-color 0.15s;
+    }
+
+    .issue-item:hover { border-color: var(--border2); }
+
+    .issue-item.high { border-left: 3px solid var(--red); }
+    .issue-item.medium { border-left: 3px solid var(--orange); }
+    .issue-item.low { border-left: 3px solid var(--yellow); }
+
+    .severity-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .severity-badge.high { background: rgba(239,68,68,0.15); color: var(--red); }
+    .severity-badge.medium { background: rgba(245,158,11,0.15); color: var(--orange); }
+    .severity-badge.low { background: rgba(234,179,8,0.15); color: var(--yellow); }
+
+    .issue-body { flex: 1; }
+
+    .issue-location {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 3px;
+    }
+
+    .issue-type {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .issue-msg {
+      font-size: 13px;
+      color: var(--text2);
+      font-family: var(--mono);
+    }
+
+    /* Alert */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+    .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .alert-info { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.3); color: #93c5fd; }
+
+    /* Tab section */
+    .section-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .tab-btn:not(.active) {
+      background: var(--card2);
+      color: var(--text2);
+    }
+
+    .tab-btn:not(.active):hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text3);
+    }
+
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* Home page grid */
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .home-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .home-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(79,142,247,0.1);
+    }
+
+    .home-card .hc-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 14px;
+    }
+
+    .home-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .home-card p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+    .gradient-blue { background: linear-gradient(135deg, rgba(79,142,247,0.2), rgba(79,142,247,0.05)); }
+    .gradient-purple { background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(124,58,237,0.05)); }
+    .gradient-cyan { background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(6,182,212,0.05)); }
+    .gradient-green { background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05)); }
+
+    /* Progress */
+    .progress-ring {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 32px;
+      color: var(--text2);
+      font-size: 14px;
+    }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; max-width: 100vw; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+const API = axios.create({ baseURL: 'http://localhost:8000' });
+
+// ── Icons ────────────────────────────────────────────────────────────────────
+const Icons = {
+  code: '⌨️', file: '📄', zip: '🗜️', github: '🐙',
+  home: '🏠', shield: '🛡️', error: '❌', warn: '⚠️',
+  check: '✅', search: '🔍', trash: '🗑️', upload: '📤',
+  eye: '👁️', lock: '🔐', bug: '🐛', spark: '✨',
+};
+
+// ── Severity badge ────────────────────────────────────────────────────────────
+function SeverityBadge({ severity }) {
+  return <span className={`severity-badge ${severity}`}>{severity}</span>;
+}
+
+// ── Issue item ────────────────────────────────────────────────────────────────
+function IssueItem({ issue }) {
+  return (
+    <div className={`issue-item ${issue.severity} fade-in`}>
+      <SeverityBadge severity={issue.severity} />
+      <div className="issue-body">
+        <div className="issue-location">{issue.file} · line {issue.line}</div>
+        <div className="issue-type">{issue.type}</div>
+        <div className="issue-msg">{issue.message}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Results panel ─────────────────────────────────────────────────────────────
+function ResultsPanel({ result }) {
+  const [tab, setTab] = useState('all');
+
+  const allIssues = [...(result.syntax_errors || []), ...(result.security_warnings || [])];
+  const highs = allIssues.filter(i => i.severity === 'high').length;
+  const meds = allIssues.filter(i => i.severity === 'medium').length;
+  const lows = allIssues.filter(i => i.severity === 'low').length;
+
+  const displayed = tab === 'all' ? allIssues
+    : tab === 'syntax' ? result.syntax_errors
+    : result.security_warnings;
+
+  return (
+    <div className="fade-in">
+      <div className="results-summary">
+        <div className="stat-card blue">
+          <div className="stat-num">{result.total_files_analyzed}</div>
+          <div className="stat-label">Tekshirilgan fayllar</div>
+        </div>
+        <div className="stat-card red">
+          <div className="stat-num">{highs}</div>
+          <div className="stat-label">Yuqori daraja</div>
+        </div>
+        <div className="stat-card orange">
+          <div className="stat-num">{meds}</div>
+          <div className="stat-label">O‘rta</div>
+        </div>
+        <div className="stat-card green">
+          <div className="stat-num">{lows}</div>
+          <div className="stat-label">Past</div>
+        </div>
+      </div>
+
+      {allIssues.length === 0 && (
+        <div className="alert alert-success">
+          {Icons.check} Muammo topilmadi — kod toza!
+        </div>
+      )}
+
+      {allIssues.length > 0 && (
+        <>
+          <div className="section-tabs">
+            <button className={`tab-btn ${tab==='all'?'active':''}`} onClick={() => setTab('all')}>
+              All ({allIssues.length})
+            </button>
+            <button className={`tab-btn ${tab==='syntax'?'active':''}`} onClick={() => setTab('syntax')}>
+              Syntax ({result.syntax_errors.length})
+            </button>
+            <button className={`tab-btn ${tab==='security'?'active':''}`} onClick={() => setTab('security')}>
+              Security ({result.security_warnings.length})
+            </button>
+          </div>
+
+          <div className="issue-list">
+            {displayed.map((issue, i) => <IssueItem key={i} issue={issue} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Loading state ─────────────────────────────────────────────────────────────
+function Loading({ msg = 'Analyzing...' }) {
+  return (
+    <div className="progress-ring">
+      <div className="spinner" style={{width:40,height:40,borderWidth:3}}></div>
+      <div>{msg}</div>
+    </div>
+  );
+}
+
+// ── Error alert ───────────────────────────────────────────────────────────────
+function ErrorAlert({ msg }) {
+  return <div className="alert alert-error">{Icons.error} {msg}</div>;
+}
+
+// ── Matn tahlilchisi page ────────────────────────────────────────────────────────
+function TextPage() {
+  const [code, setCode] = useState('');
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const sample = `import subprocess
+import os
+
+password = "super_secret_123"
+api_key = "sk-abc123def456"
+
+def run_code(user_input):
+    eval(user_input)
+    exec("print('hello')")
+    subprocess.call(user_input, shell=True)
+
+def read_file(path):
+    f = open(path, 'r')
+    return f.read()
+
+def bad_syntax(:
+    pass`;
+
+  const analyze = async () => {
+    if (!code.trim()) { setError('Please enter some Python code.'); return; }
+    setLoading(true); setError(''); setResult(null);
+    try {
+      const res = await API.post('/analyze/text', { code });
+      setResult(res.data);
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || 'Tahlil muvaffaqiyatsiz tugadi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>⌨️ Matn tahlilchisi</h2>
+        <p>Sintaksis xatolari va xavfsizlik muammolarini tekshirish uchun Python kodingizni pastga joylashtiring.</p>
+      </div>
+
+      {error && <ErrorAlert msg={error} />}
+
+      <div className="card">
+        <div className="card-title">Python kodi</div>
+        <textarea
+          value={code}
+          onChange={e => setCode(e.target.value)}
+          placeholder="# Paste your Python code here..."
+          spellCheck={false}
+        />
+        <div style={{display:'flex', gap:10, marginTop:12, flexWrap:'wrap'}}>
+          <button className="btn btn-primary" onClick={analyze} disabled={loading}>
+            {loading ? <span className="spinner"></span> : Icons.search} Kod tahlil qilish
+          </button>
+          <button className="btn btn-ghost" onClick={() => setCode(sample)}>
+            Namuna kodni yuklash
+          </button>
+          {code && <button className="btn btn-ghost" onClick={() => { setCode(''); setResult(null); setError(''); }}>
+            Tozalash
+          </button>}
+        </div>
+      </div>
+
+      {loading && (
+        <div className="card">
+          <div className="loading-bar"><div className="loading-bar-fill"></div></div>
+          <Loading msg="Scanning your code..." />
+        </div>
+      )}
+
+      {result && !loading && (
+        <div className="card fade-in">
+          <div className="card-title">Tahlil natijalari</div>
+          <ResultsPanel result={result} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Fayl yuklash page ──────────────────────────────────────────────────────────
+function FilePage() {
+  const [file, setFile] = useState(null);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [drag, setDrag] = useState(false);
+  const inputRef = useRef();
+
+  const handleFile = f => {
+    if (!f) return;
+    if (!f.name.endsWith('.py')) { setError('Only .py files are accepted.'); return; }
+    setFile(f); setError(''); setResult(null);
+  };
+
+  const analyze = async () => {
+    if (!file) { setError('Please select a .py file.'); return; }
+    setLoading(true); setError(''); setResult(null);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await API.post('/analyze/file', fd);
+      setResult(res.data);
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || 'Yuklash muvaffaqiyatsiz tugadi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>📄 Fayl yuklash</h2>
+        <p>Tahlil qilish uchun bitta Python fayl yuklang.</p>
+      </div>
+
+      {error && <ErrorAlert msg={error} />}
+
+      <div className="card">
+        <div className="card-title">.py fayl yuklash</div>
+        <div
+          className={`dropzone ${drag?'drag':''}`}
+          onClick={() => inputRef.current.click()}
+          onDragOver={e => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]); }}
+        >
+          <div className="dropzone-icon">📄</div>
+          <p>Click or drag a <strong>.py file</strong> here</p>
+          <small>Python files only · Max 5MB</small>
+        </div>
+        <input ref={inputRef} type="file" accept=".py" style={{display:'none'}}
+          onChange={e => handleFile(e.target.files[0])} />
+
+        {file && (
+          <div className="file-badge">
+            📄 {file.name} <span style={{color:'var(--text3)'}}>({(file.size/1024).toFixed(1)} KB)</span>
+          </div>
+        )}
+
+        <div style={{display:'flex', gap:10, marginTop:16}}>
+          <button className="btn btn-primary" onClick={analyze} disabled={loading || !file}>
+            {loading ? <span className="spinner"></span> : '🔍'} Faylni tahlil qilish
+          </button>
+          {file && <button className="btn btn-ghost" onClick={() => { setFile(null); setResult(null); }}>Tozalash</button>}
+        </div>
+      </div>
+
+      {loading && <div className="card"><div className="loading-bar"><div className="loading-bar-fill"></div></div><Loading msg="Analyzing file..." /></div>}
+      {result && !loading && <div className="card fade-in"><div className="card-title">Results — {result.filename}</div><ResultsPanel result={result} /></div>}
+    </div>
+  );
+}
+
+// ── ZIP Upload page ───────────────────────────────────────────────────────────
+function ZipPage() {
+  const [file, setFile] = useState(null);
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [drag, setDrag] = useState(false);
+  const inputRef = useRef();
+
+  const handleFile = f => {
+    if (!f) return;
+    if (!f.name.toPasterCase().endsWith('.zip')) { setError('Only .zip files are accepted.'); return; }
+    setFile(f); setError(''); setResult(null);
+  };
+
+  const analyze = async () => {
+    if (!file) { setError('Please select a .zip file.'); return; }
+    setLoading(true); setError(''); setResult(null);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await API.post('/analyze/zip', fd);
+      setResult(res.data);
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || 'Yuklash muvaffaqiyatsiz tugadi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>🗜️ ZIP arxiv</h2>
+        <p>Upload a ZIP file containing multiple Python files — all will be analyzed.</p>
+      </div>
+
+      {error && <ErrorAlert msg={error} />}
+
+      <div className="card">
+        <div className="card-title">.zip arxiv yuklash</div>
+        <div
+          className={`dropzone ${drag?'drag':''}`}
+          onClick={() => inputRef.current.click()}
+          onDragOver={e => { e.preventDefault(); setDrag(true); }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]); }}
+        >
+          <div className="dropzone-icon">🗜️</div>
+          <p>Click or drag a <strong>.zip archive</strong> here</p>
+          <small>All .py files inside will be analyzed · Max 20MB</small>
+        </div>
+        <input ref={inputRef} type="file" accept=".zip" style={{display:'none'}}
+          onChange={e => handleFile(e.target.files[0])} />
+
+        {file && (
+          <div className="file-badge">
+            🗜️ {file.name} <span style={{color:'var(--text3)'}}>({(file.size/1024).toFixed(1)} KB)</span>
+          </div>
+        )}
+
+        <div style={{display:'flex', gap:10, marginTop:16}}>
+          <button className="btn btn-primary" onClick={analyze} disabled={loading || !file}>
+            {loading ? <span className="spinner"></span> : '🔍'} ZIP ni tahlil qilish
+          </button>
+          {file && <button className="btn btn-ghost" onClick={() => { setFile(null); setResult(null); }}>Tozalash</button>}
+        </div>
+      </div>
+
+      {loading && (
+        <div className="card">
+          <div className="loading-bar"><div className="loading-bar-fill"></div></div>
+          <Loading msg="Extracting and scanning all Python files..." />
+        </div>
+      )}
+      {result && !loading && (
+        <div className="card fade-in">
+          <div className="card-title">Results — {result.total_files_analyzed} files scanned</div>
+          <ResultsPanel result={result} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── GitHub page ───────────────────────────────────────────────────────────────
+function GithubPage() {
+  const [url, setUrl] = useState('');
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const analyze = async () => {
+    if (!url.trim()) { setError('Please enter a GitHub repository URL.'); return; }
+    setLoading(true); setError(''); setResult(null);
+    try {
+      const res = await API.post('/analyze/github', { repo_url: url.trim() });
+      setResult(res.data);
+    } catch (e) {
+      setError(e.response?.data?.detail || e.message || 'Tahlil muvaffaqiyatsiz tugadi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="page-header">
+        <h2>🐙 GitHub repozitoriy</h2>
+        <p>Enter a public GitHub repository URL — we'll clone and analyze all Python files.</p>
+      </div>
+
+      {error && <ErrorAlert msg={error} />}
+
+      <div className="card">
+        <div className="card-title">Repozitoriy havolasi</div>
+        <input
+          type="url"
+          value={url}
+          onChange={e => setUrl(e.target.value)}
+          placeholder="https://github.com/username/repository"
+          onKeyDown={e => e.key === 'Enter' && analyze()}
+        />
+        <div style={{marginTop:10}}>
+          <div className="alert alert-info" style={{fontSize:13, marginBottom:0}}>
+            {Icons.lock} Only <strong>public</strong> repositories are supported. Private repos require authentication.
+          </div>
+        </div>
+        <div style={{display:'flex', gap:10, marginTop:14, flexWrap:'wrap'}}>
+          <button className="btn btn-primary" onClick={analyze} disabled={loading || !url.trim()}>
+            {loading ? <span className="spinner"></span> : Icons.github} Clone & Analyze
+          </button>
+          <button className="btn btn-ghost" onClick={() => setUrl('https://github.com/pallets/flask')}>
+            Try: Flask
+          </button>
+          <button className="btn btn-ghost" onClick={() => setUrl('https://github.com/psf/requests')}>
+            Try: Requests
+          </button>
+        </div>
+      </div>
+
+      {loading && (
+        <div className="card">
+          <div className="loading-bar"><div className="loading-bar-fill"></div></div>
+          <Loading msg="Cloning repository and scanning Python files..." />
+          <p style={{textAlign:'center', fontSize:13, color:'var(--text3)', marginTop:8}}>
+            This may take a moment for large repositories.
+          </p>
+        </div>
+      )}
+      {result && !loading && (
+        <div className="card fade-in">
+          <div className="card-title">Results</div>
+          <div style={{fontSize:12, fontFamily:'var(--mono)', color:'var(--text3)', marginBottom:12}}>
+            🐙 {result.filename}
+          </div>
+          <ResultsPanel result={result} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Home page ─────────────────────────────────────────────────────────────────
+function HomePage({ navigate }) {
+  return (
+    <div className="fade-in">
+      <div className="page-header">
+        <h2>{Icons.spark} Python kod tahlil tizimi</h2>
+        <p>Detect syntax errors and security vulnerabilities in your Python code.</p>
+      </div>
+
+      <div className="home-grid">
+        <div className="home-card" onClick={() => navigate('text')}>
+          <div className="hc-icon gradient-blue">⌨️</div>
+          <h3>Matn tahlilchisi</h3>
+          <p>Paste code directly and get instant analysis results.</p>
+        </div>
+        <div className="home-card" onClick={() => navigate('file')}>
+          <div className="hc-icon gradient-purple">📄</div>
+          <h3>Fayl yuklash</h3>
+          <p>Upload a single .py file for syntax and security scanning.</p>
+        </div>
+        <div className="home-card" onClick={() => navigate('zip')}>
+          <div className="hc-icon gradient-cyan">🗜️</div>
+          <h3>ZIP arxiv</h3>
+          <p>Analyze all Python files inside a ZIP archive at once.</p>
+        </div>
+        <div className="home-card" onClick={() => navigate('github')}>
+          <div className="hc-icon gradient-green">🐙</div>
+          <h3>GitHub Repo</h3>
+          <p>Clone and scan any public GitHub repository automatically.</p>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">What we detect</div>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px,1fr))', gap:12}}>
+          {[
+            ['🐛', 'Syntax Errors', 'Invalid Python syntax caught by AST parser'],
+            ['⚡', 'eval() / exec()', 'Dangerous code execution functions'],
+            ['🖥️', 'Subprocess Usage', 'Shell command injection risks'],
+            ['🔑', 'Hardcoded Secrets', 'Passwords, API keys, tokens in code'],
+            ['📂', 'File Operations', 'Unsafe file reads and deletions'],
+            ['📦', 'Dangerous Imports', 'Risky module imports detected'],
+          ].map(([icon, title, desc]) => (
+            <div key={title} style={{
+              background:'var(--bg2)', border:'1px solid var(--border)',
+              borderRadius:8, padding:'14px 16px'
+            }}>
+              <div style={{fontSize:20, marginBottom:6}}>{icon}</div>
+              <div style={{fontSize:13, fontWeight:700, marginBottom:3}}>{title}</div>
+              <div style={{fontSize:12, color:'var(--text3)'}}>{desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">API Status</div>
+        <ApiStatus />
+      </div>
+    </div>
+  );
+}
+
+// ── API status checker ────────────────────────────────────────────────────────
+function ApiStatus() {
+  const [status, setStatus] = useState('checking');
+
+  useEffect(() => {
+    API.get('/health')
+      .then(() => setStatus('online'))
+      .catch(() => setStatus('offline'));
+  }, []);
+
+  if (status === 'checking') return (
+    <div style={{display:'flex', alignItems:'center', gap:8, color:'var(--text2)', fontSize:14}}>
+      <span className="spinner"></span> Connecting to backend...
+    </div>
+  );
+
+  return (
+    <div className={`alert ${status === 'online' ? 'alert-success' : 'alert-error'}`}>
+      {status === 'online' ? '✅' : '❌'}
+      Backend API is <strong>{status}</strong>
+      {status === 'offline' && ' — Start the FastAPI server: '}
+      {status === 'offline' && <code style={{fontFamily:'var(--mono)', fontSize:12, marginLeft:4}}>uvicorn app.main:app --reload</code>}
+    </div>
+  );
+}
+
+// ── App shell ─────────────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = useState('home');
+
+  const navItems = [
+    { id: 'home', label: 'Dashboard', icon: '🏠' },
+    { id: 'text', label: 'Matn tahlilchisi', icon: '⌨️' },
+    { id: 'file', label: 'Fayl yuklash', icon: '📄' },
+    { id: 'zip', label: 'ZIP arxiv', icon: '🗜️' },
+    { id: 'github', label: 'GitHub Repo', icon: '🐙' },
+  ];
+
+  const pages = {
+    home: <HomePage navigate={setPage} />,
+    text: <TextPage />,
+    file: <FilePage />,
+    zip: <ZipPage />,
+    github: <GithubPage />,
+  };
+
+  return (
+    <div className="app">
+      <nav className="sidebar">
+        <div className="logo">
+          <div className="logo-icon">🛡️</div>
+          <h1>PyAnalyzer</h1>
+          <p>v1.0.0 · MVP</p>
+        </div>
+
+        <div className="nav">
+          <div className="nav-label">Navigation</div>
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              className={`nav-item ${page === item.id ? 'active' : ''}`}
+              onClick={() => setPage(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="sidebar-footer">
+          Python kodi Analysis<br />
+          FastAPI + React MVP
+        </div>
+      </nav>
+
+      <main className="main">
+        {pages[page]}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
