@@ -40,7 +40,7 @@ def clone_repo(repo_url: str) -> Tuple[Path, List[Path]]:
     temp = ensure_temp_dir()
     clone_dir = temp / f"repo_{uuid.uuid4().hex}"
 
-    logger.info(f"Cloning {repo_url} → {clone_dir}")
+    logger.info(f"Cloning {repo_url} -> {clone_dir}")
     try:
         git.Repo.clone_from(repo_url.strip(), clone_dir, depth=1)
     except git.exc.GitCommandError as e:

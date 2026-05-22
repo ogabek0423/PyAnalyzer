@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PyAnalyzer — Python Code Analysis System</title>
+  <title>PyAnalyzer — Python kod tahlil tizimi</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -551,9 +551,137 @@ const Icons = {
   eye: '👁️', lock: '🔐', bug: '🐛', spark: '✨',
 };
 
+// ── Tarjima lug'atlari ────────────────────────────────────────────────────────
+const TYPE_UZ = {
+  // Sintaksis xatolari
+  'SyntaxError': 'Sintaksis xatosi',
+  'IndentationError': 'Chekinish xatosi',
+  'TabError': 'Tab xatosi',
+  'NameError': 'Nom xatosi',
+  'TypeError': 'Tur xatosi',
+  'ValueError': 'Qiymat xatosi',
+  'AttributeError': 'Atribut xatosi',
+  'ImportError': 'Import xatosi',
+  'ModuleNotFoundError': 'Modul topilmadi',
+  'IndexError': 'Indeks xatosi',
+  'KeyError': 'Kalit xatosi',
+  'ZeroDivisionError': 'Nolga bo\'lish xatosi',
+  'RecursionError': 'Rekursiya xatosi',
+  'MemoryError': 'Xotira xatosi',
+  'OverflowError': 'To\'lib ketish xatosi',
+  'RuntimeError': 'Ishlash vaqti xatosi',
+  'StopIteration': 'Iteratsiya to\'xtadi',
+  'GeneratorExit': 'Generator to\'xtadi',
+  'SystemExit': 'Tizim chiqishi',
+  'KeyboardInterrupt': 'Klaviatura uzilishi',
+  'Exception': 'Istisno',
+  'BaseException': 'Asosiy istisno',
+  'UnicodeError': 'Unicode xatosi',
+  'UnicodeDecodeError': 'Unicode dekodlash xatosi',
+  'UnicodeEncodeError': 'Unicode kodlash xatosi',
+  'FileNotFoundError': 'Fayl topilmadi',
+  'PermissionError': 'Ruxsat xatosi',
+  'TimeoutError': 'Vaqt tugadi',
+  'ConnectionError': 'Ulanish xatosi',
+  'OSError': 'Tizim xatosi',
+  'IOError': 'Kiritish-chiqarish xatosi',
+  'NotImplementedError': 'Amalga oshirilmagan xato',
+  'AssertionError': 'Tasdiqlash xatosi',
+  // Xavfsizlik ogohlantirishlari
+  'security': 'Xavfsizlik',
+  'Security Warning': 'Xavfsizlik ogohlantirishи',
+  'SQL Injection': 'SQL in\'ektsiya',
+  'Command Injection': 'Buyruq in\'ektsiyasi',
+  'Path Traversal': 'Yo\'l kesib o\'tish',
+  'Hardcoded Secret': 'Qattiq kodlangan sir',
+  'Hardcoded Password': 'Qattiq kodlangan parol',
+  'Weak Cryptography': 'Zaif kriptografiya',
+  'Insecure Deserialization': 'Xavfsiz bo\'lmagan deserializatsiya',
+  'Unsafe eval': 'Xavfsiz bo\'lmagan eval',
+  'Unsafe exec': 'Xavfsiz bo\'lmagan exec',
+  'Open Redirect': 'Ochiq yo\'naltirish',
+  'XSS': 'Saytlararo skript (XSS)',
+  'SSRF': 'Server tomonidan so\'rov soxtalashtirish (SSRF)',
+  'XXE': 'XML tashqi obyekt (XXE)',
+  'Insecure Random': 'Xavfsiz bo\'lmagan tasodifiy son',
+  'Debug Mode': 'Debug rejimi yoqilgan',
+  'Use of assert': 'assert ishlatilishi',
+  'Pickle Usage': 'Pickle ishlatilishi',
+  'Shell Injection': 'Shell in\'ektsiyasi',
+};
+
+const MSG_UZ = {
+  // Umumiy sintaksis xatolari
+  'invalid syntax': 'Noto\'g\'ri sintaksis',
+  'unexpected EOF': 'Kutilmagan fayl oxiri',
+  'unexpected indent': 'Kutilmagan chekinish',
+  'unindent does not match': 'Chekinish mos kelmaydi',
+  'expected an indented block': 'Chekinish bloki kutilgan edi',
+  'invalid character': 'Noto\'g\'ri belgi',
+  'EOL while scanning string literal': 'Satr literals skanerlashda qator oxiri',
+  'EOF while scanning string literal': 'Satr literals skanerlashda fayl oxiri',
+  'missing parenthesis': 'Qavs yetishmayapti',
+  'cannot assign to': 'ga qiymat berish mumkin emas',
+  'division by zero': 'Nolga bo\'lish',
+  // Xavfsizlik xabarlari
+  'SQL query constructed with string formatting': 'SQL so\'rovda satr formatlash ishlatilgan — SQL in\'ektsiya xavfi',
+  'SQL query constructed with f-string': 'SQL so\'rovda f-satr ishlatilgan — SQL in\'ektsiya xavfi',
+  'Use of eval()': 'eval() ishlatilishi — xavfli kod bajarilishi mumkin',
+  'Use of exec()': 'exec() ishlatilishi — xavfli kod bajarilishi mumkin',
+  'Possible shell injection via subprocess': 'subprocess orqali shell in\'ektsiya xavfi',
+  'Possible shell injection via os.system': 'os.system orqali shell in\'ektsiya xavfi',
+  'Hardcoded password detected': 'Qattiq kodlangan parol aniqlandi',
+  'Hardcoded secret detected': 'Qattiq kodlangan sir aniqlandi',
+  'Hardcoded API key detected': 'Qattiq kodlangan API kalit aniqlandi',
+  'Use of pickle': 'pickle ishlatilishi — xavfli deserializatsiya',
+  'Use of assert for security': 'Xavfsizlik uchun assert ishlatilishi xavfli',
+  'Use of random for security': 'Xavfsizlik uchun random ishlatilishi xavfli — secrets ishlatilsin',
+  'Use of md5': 'MD5 ishlatilishi — zaif xashlash algoritmi',
+  'Use of sha1': 'SHA1 ishlatilishi — zaif xashlash algoritmi',
+  'Debug mode enabled': 'Debug rejimi yoqilgan — ishlab chiqarishda xavfli',
+  'Flask debug mode': 'Flask debug rejimi yoqilgan',
+  'subprocess/os usage detected (run) — avoid passing unsanitised input': 'subprocess/os ishlatilishi aniqlandi (run) — sanitizatsiya qilinmagan ma\'lumot uzatmang',
+  'subprocess/os usage detected': 'subprocess/os ishlatilishi aniqlandi — sanitizatsiya qilinmagan ma\'lumot uzatmang',
+  'File open() detected — verify path is not user-controlled': 'open() fayl ochish aniqlandi — yo\'l foydalanuvchi tomonidan boshqarilmasligini tekshiring',
+  'File open() detected': 'open() fayl ochish aniqlandi — yo\'l foydalanuvchi tomonidan boshqarilmasligini tekshiring',
+  'Dynamic import via __import__() — verify necessity': '__import__() orqali dinamik import — zarurligini tekshiring',
+  'Dynamic import via __import__()': '__import__() orqali dinamik import — zarurligini tekshiring',
+  'Use of compile() — potential code injection risk': 'compile() ishlatilishi — kod in\'ektsiya xavfi',
+  'Use of compile()': 'compile() ishlatilishi — kod in\'ektsiya xavfi',
+  'Hardcoded API key or secret detected': 'Qattiq kodlangan API kalit yoki sir aniqlandi',
+};
+
+function translateType(t) {
+  if (!t) return t;
+  if (TYPE_UZ[t]) return TYPE_UZ[t];
+  // qisman moslik
+  for (const [en, uz] of Object.entries(TYPE_UZ)) {
+    if (t.toLowerCase().includes(en.toLowerCase())) return uz;
+  }
+  return t;
+}
+
+function translateMsg(m) {
+  if (!m) return m;
+  // To'liq moslik
+  if (MSG_UZ[m]) return MSG_UZ[m];
+  // To'liq moslik (kichik harf)
+  const mLow = m.toLowerCase();
+  for (const [en, uz] of Object.entries(MSG_UZ)) {
+    if (mLow === en.toLowerCase()) return uz;
+  }
+  // Qisman moslik — uzunroq lug'at kaliti birinchi tekshirilsin
+  const sorted = Object.entries(MSG_UZ).sort((a, b) => b[0].length - a[0].length);
+  for (const [en, uz] of sorted) {
+    if (mLow.includes(en.toLowerCase())) return uz;
+  }
+  return m;
+}
+
 // ── Severity badge ────────────────────────────────────────────────────────────
 function SeverityBadge({ severity }) {
-  return <span className={`severity-badge ${severity}`}>{severity}</span>;
+  const labels = { high: 'yuqori', medium: "o'rta", low: 'past' };
+  return <span className={`severity-badge ${severity}`}>{labels[severity] || severity}</span>;
 }
 
 // ── Issue item ────────────────────────────────────────────────────────────────
@@ -562,9 +690,9 @@ function IssueItem({ issue }) {
     <div className={`issue-item ${issue.severity} fade-in`}>
       <SeverityBadge severity={issue.severity} />
       <div className="issue-body">
-        <div className="issue-location">{issue.file} · line {issue.line}</div>
-        <div className="issue-type">{issue.type}</div>
-        <div className="issue-msg">{issue.message}</div>
+        <div className="issue-location">{issue.file} · qator {issue.line}</div>
+        <div className="issue-type">{translateType(issue.type)}</div>
+        <div className="issue-msg">{translateMsg(issue.message)}</div>
       </div>
     </div>
   );
@@ -588,25 +716,25 @@ function ResultsPanel({ result }) {
       <div className="results-summary">
         <div className="stat-card blue">
           <div className="stat-num">{result.total_files_analyzed}</div>
-          <div className="stat-label">Files scanned</div>
+          <div className="stat-label">Tekshirilgan fayllar</div>
         </div>
         <div className="stat-card red">
           <div className="stat-num">{highs}</div>
-          <div className="stat-label">High severity</div>
+          <div className="stat-label">Yuqori daraja</div>
         </div>
         <div className="stat-card orange">
           <div className="stat-num">{meds}</div>
-          <div className="stat-label">Medium</div>
+          <div className="stat-label">O‘rta</div>
         </div>
         <div className="stat-card green">
           <div className="stat-num">{lows}</div>
-          <div className="stat-label">Low</div>
+          <div className="stat-label">Past</div>
         </div>
       </div>
 
       {allIssues.length === 0 && (
         <div className="alert alert-success">
-          {Icons.check} No issues found — code looks clean!
+          {Icons.check} Muammo topilmadi — kod toza!
         </div>
       )}
 
@@ -614,13 +742,13 @@ function ResultsPanel({ result }) {
         <>
           <div className="section-tabs">
             <button className={`tab-btn ${tab==='all'?'active':''}`} onClick={() => setTab('all')}>
-              All ({allIssues.length})
+              Hammasi ({allIssues.length})
             </button>
             <button className={`tab-btn ${tab==='syntax'?'active':''}`} onClick={() => setTab('syntax')}>
-              Syntax ({result.syntax_errors.length})
+              Sintaksis ({result.syntax_errors.length})
             </button>
             <button className={`tab-btn ${tab==='security'?'active':''}`} onClick={() => setTab('security')}>
-              Security ({result.security_warnings.length})
+              Xavfsizlik ({result.security_warnings.length})
             </button>
           </div>
 
@@ -634,7 +762,7 @@ function ResultsPanel({ result }) {
 }
 
 // ── Loading state ─────────────────────────────────────────────────────────────
-function Loading({ msg = 'Analyzing...' }) {
+function Loading({ msg = 'Tahlil qilinmoqda...' }) {
   return (
     <div className="progress-ring">
       <div className="spinner" style={{width:40,height:40,borderWidth:3}}></div>
@@ -648,7 +776,7 @@ function ErrorAlert({ msg }) {
   return <div className="alert alert-error">{Icons.error} {msg}</div>;
 }
 
-// ── Text Analyzer page ────────────────────────────────────────────────────────
+// ── Matn tahlilchisi page ────────────────────────────────────────────────────────
 function TextPage() {
   const [code, setCode] = useState('');
   const [result, setResult] = useState(null);
@@ -674,13 +802,13 @@ def bad_syntax(:
     pass`;
 
   const analyze = async () => {
-    if (!code.trim()) { setError('Please enter some Python code.'); return; }
+    if (!code.trim()) { setError('Iltimos, Python kodni kiriting.'); return; }
     setLoading(true); setError(''); setResult(null);
     try {
       const res = await API.post('/analyze/text', { code });
       setResult(res.data);
     } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Analysis failed');
+      setError(e.response?.data?.detail || e.message || 'Tahlil muvaffaqiyatsiz tugadi');
     } finally {
       setLoading(false);
     }
@@ -689,29 +817,29 @@ def bad_syntax(:
   return (
     <div>
       <div className="page-header">
-        <h2>⌨️ Text Analyzer</h2>
-        <p>Paste your Python code below to check for syntax errors and security issues.</p>
+        <h2>⌨️ Matn tahlilchisi</h2>
+        <p>Sintaksis xatolari va xavfsizlik muammolarini tekshirish uchun Python kodingizni pastga joylashtiring.</p>
       </div>
 
       {error && <ErrorAlert msg={error} />}
 
       <div className="card">
-        <div className="card-title">Python Code</div>
+        <div className="card-title">Python kodi</div>
         <textarea
           value={code}
           onChange={e => setCode(e.target.value)}
-          placeholder="# Paste your Python code here..."
+          placeholder="# Python kodingizni shu yerga joylashtiring..."
           spellCheck={false}
         />
         <div style={{display:'flex', gap:10, marginTop:12, flexWrap:'wrap'}}>
           <button className="btn btn-primary" onClick={analyze} disabled={loading}>
-            {loading ? <span className="spinner"></span> : Icons.search} Analyze Code
+            {loading ? <span className="spinner"></span> : Icons.search} Kod tahlil qilish
           </button>
           <button className="btn btn-ghost" onClick={() => setCode(sample)}>
-            Load Sample Code
+            Namuna kodni yuklash
           </button>
           {code && <button className="btn btn-ghost" onClick={() => { setCode(''); setResult(null); setError(''); }}>
-            Clear
+            Tozalash
           </button>}
         </div>
       </div>
@@ -719,13 +847,13 @@ def bad_syntax(:
       {loading && (
         <div className="card">
           <div className="loading-bar"><div className="loading-bar-fill"></div></div>
-          <Loading msg="Scanning your code..." />
+          <Loading msg="Kod skanerlanoqda..." />
         </div>
       )}
 
       {result && !loading && (
         <div className="card fade-in">
-          <div className="card-title">Analysis Results</div>
+          <div className="card-title">Tahlil natijalari</div>
           <ResultsPanel result={result} />
         </div>
       )}
@@ -733,7 +861,7 @@ def bad_syntax(:
   );
 }
 
-// ── File Upload page ──────────────────────────────────────────────────────────
+// ── Fayl yuklash page ──────────────────────────────────────────────────────────
 function FilePage() {
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
@@ -744,12 +872,12 @@ function FilePage() {
 
   const handleFile = f => {
     if (!f) return;
-    if (!f.name.endsWith('.py')) { setError('Only .py files are accepted.'); return; }
+    if (!f.name.endsWith('.py')) { setError('Faqat .py fayllar qabul qilinadi.'); return; }
     setFile(f); setError(''); setResult(null);
   };
 
   const analyze = async () => {
-    if (!file) { setError('Please select a .py file.'); return; }
+    if (!file) { setError('Iltimos, .py fayl tanlang.'); return; }
     setLoading(true); setError(''); setResult(null);
     const fd = new FormData();
     fd.append('file', file);
@@ -757,7 +885,7 @@ function FilePage() {
       const res = await API.post('/analyze/file', fd);
       setResult(res.data);
     } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Upload failed');
+      setError(e.response?.data?.detail || e.message || 'Yuklash muvaffaqiyatsiz tugadi');
     } finally {
       setLoading(false);
     }
@@ -766,14 +894,14 @@ function FilePage() {
   return (
     <div>
       <div className="page-header">
-        <h2>📄 File Upload</h2>
-        <p>Upload a single Python file for analysis.</p>
+        <h2>📄 Fayl yuklash</h2>
+        <p>Tahlil qilish uchun bitta Python fayl yuklang.</p>
       </div>
 
       {error && <ErrorAlert msg={error} />}
 
       <div className="card">
-        <div className="card-title">Upload .py File</div>
+        <div className="card-title">.py fayl yuklash</div>
         <div
           className={`dropzone ${drag?'drag':''}`}
           onClick={() => inputRef.current.click()}
@@ -782,8 +910,8 @@ function FilePage() {
           onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]); }}
         >
           <div className="dropzone-icon">📄</div>
-          <p>Click or drag a <strong>.py file</strong> here</p>
-          <small>Python files only · Max 5MB</small>
+          <p>Bosing yoki <strong>.py fayl</strong>ni shu yerga torting</p>
+          <small>Faqat Python fayllar · Maksimal 5MB</small>
         </div>
         <input ref={inputRef} type="file" accept=".py" style={{display:'none'}}
           onChange={e => handleFile(e.target.files[0])} />
@@ -796,14 +924,14 @@ function FilePage() {
 
         <div style={{display:'flex', gap:10, marginTop:16}}>
           <button className="btn btn-primary" onClick={analyze} disabled={loading || !file}>
-            {loading ? <span className="spinner"></span> : '🔍'} Analyze File
+            {loading ? <span className="spinner"></span> : '🔍'} Faylni tahlil qilish
           </button>
-          {file && <button className="btn btn-ghost" onClick={() => { setFile(null); setResult(null); }}>Clear</button>}
+          {file && <button className="btn btn-ghost" onClick={() => { setFile(null); setResult(null); }}>Tozalash</button>}
         </div>
       </div>
 
-      {loading && <div className="card"><div className="loading-bar"><div className="loading-bar-fill"></div></div><Loading msg="Analyzing file..." /></div>}
-      {result && !loading && <div className="card fade-in"><div className="card-title">Results — {result.filename}</div><ResultsPanel result={result} /></div>}
+      {loading && <div className="card"><div className="loading-bar"><div className="loading-bar-fill"></div></div><Loading msg="Fayl tahlil qilinmoqda..." /></div>}
+      {result && !loading && <div className="card fade-in"><div className="card-title">Natijalar — {result.filename}</div><ResultsPanel result={result} /></div>}
     </div>
   );
 }
@@ -819,12 +947,12 @@ function ZipPage() {
 
   const handleFile = f => {
     if (!f) return;
-    if (!f.name.toLowerCase().endsWith('.zip')) { setError('Only .zip files are accepted.'); return; }
+    if (!f.name.toLowerCase().endsWith('.zip')) { setError('Faqat .zip fayllar qabul qilinadi.'); return; }
     setFile(f); setError(''); setResult(null);
   };
 
   const analyze = async () => {
-    if (!file) { setError('Please select a .zip file.'); return; }
+    if (!file) { setError('Iltimos, .zip fayl tanlang.'); return; }
     setLoading(true); setError(''); setResult(null);
     const fd = new FormData();
     fd.append('file', file);
@@ -832,7 +960,7 @@ function ZipPage() {
       const res = await API.post('/analyze/zip', fd);
       setResult(res.data);
     } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Upload failed');
+      setError(e.response?.data?.detail || e.message || 'Yuklash muvaffaqiyatsiz tugadi');
     } finally {
       setLoading(false);
     }
@@ -841,14 +969,14 @@ function ZipPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>🗜️ ZIP Archive</h2>
-        <p>Upload a ZIP file containing multiple Python files — all will be analyzed.</p>
+        <h2>🗜️ ZIP arxiv</h2>
+        <p>Bir nechta Python fayllarni o'z ichiga olgan ZIP arxivni yuklang — barchasi tahlil qilinadi.</p>
       </div>
 
       {error && <ErrorAlert msg={error} />}
 
       <div className="card">
-        <div className="card-title">Upload .zip Archive</div>
+        <div className="card-title">.zip arxiv yuklash</div>
         <div
           className={`dropzone ${drag?'drag':''}`}
           onClick={() => inputRef.current.click()}
@@ -857,8 +985,8 @@ function ZipPage() {
           onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]); }}
         >
           <div className="dropzone-icon">🗜️</div>
-          <p>Click or drag a <strong>.zip archive</strong> here</p>
-          <small>All .py files inside will be analyzed · Max 20MB</small>
+          <p>Bosing yoki <strong>.zip arxiv</strong>ni shu yerga torting</p>
+          <small>Ichidagi barcha .py fayllar tahlil qilinadi · Maksimal 20MB</small>
         </div>
         <input ref={inputRef} type="file" accept=".zip" style={{display:'none'}}
           onChange={e => handleFile(e.target.files[0])} />
@@ -871,21 +999,21 @@ function ZipPage() {
 
         <div style={{display:'flex', gap:10, marginTop:16}}>
           <button className="btn btn-primary" onClick={analyze} disabled={loading || !file}>
-            {loading ? <span className="spinner"></span> : '🔍'} Analyze ZIP
+            {loading ? <span className="spinner"></span> : '🔍'} ZIP ni tahlil qilish
           </button>
-          {file && <button className="btn btn-ghost" onClick={() => { setFile(null); setResult(null); }}>Clear</button>}
+          {file && <button className="btn btn-ghost" onClick={() => { setFile(null); setResult(null); }}>Tozalash</button>}
         </div>
       </div>
 
       {loading && (
         <div className="card">
           <div className="loading-bar"><div className="loading-bar-fill"></div></div>
-          <Loading msg="Extracting and scanning all Python files..." />
+          <Loading msg="ZIP ochilmoqda va barcha Python fayllar skanerlanoqda..." />
         </div>
       )}
       {result && !loading && (
         <div className="card fade-in">
-          <div className="card-title">Results — {result.total_files_analyzed} files scanned</div>
+          <div className="card-title">Natijalar — {result.total_files_analyzed} fayl tekshirildi</div>
           <ResultsPanel result={result} />
         </div>
       )}
@@ -901,13 +1029,13 @@ function GithubPage() {
   const [error, setError] = useState('');
 
   const analyze = async () => {
-    if (!url.trim()) { setError('Please enter a GitHub repository URL.'); return; }
+    if (!url.trim()) { setError('Iltimos, GitHub repozitoriy havolasini kiriting.'); return; }
     setLoading(true); setError(''); setResult(null);
     try {
       const res = await API.post('/analyze/github', { repo_url: url.trim() });
       setResult(res.data);
     } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Analysis failed');
+      setError(e.response?.data?.detail || e.message || 'Tahlil muvaffaqiyatsiz tugadi');
     } finally {
       setLoading(false);
     }
@@ -916,14 +1044,14 @@ function GithubPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>🐙 GitHub Repository</h2>
-        <p>Enter a public GitHub repository URL — we'll clone and analyze all Python files.</p>
+        <h2>🐙 GitHub repozitoriy</h2>
+        <p>Ochiq GitHub repozitoriy havolasini kiriting — biz uni klonlab, barcha Python fayllarni tahlil qilamiz.</p>
       </div>
 
       {error && <ErrorAlert msg={error} />}
 
       <div className="card">
-        <div className="card-title">Repository URL</div>
+        <div className="card-title">Repozitoriy havolasi</div>
         <input
           type="url"
           value={url}
@@ -933,18 +1061,18 @@ function GithubPage() {
         />
         <div style={{marginTop:10}}>
           <div className="alert alert-info" style={{fontSize:13, marginBottom:0}}>
-            {Icons.lock} Only <strong>public</strong> repositories are supported. Private repos require authentication.
+            {Icons.lock} Faqat <strong>ochiq</strong> repozitoriyalar qo'llab-quvvatlanadi. Yopiq repolardan foydalanish uchun autentifikatsiya talab qilinadi.
           </div>
         </div>
         <div style={{display:'flex', gap:10, marginTop:14, flexWrap:'wrap'}}>
           <button className="btn btn-primary" onClick={analyze} disabled={loading || !url.trim()}>
-            {loading ? <span className="spinner"></span> : Icons.github} Clone & Analyze
+            {loading ? <span className="spinner"></span> : Icons.github} Klonlash va tahlil qilish
           </button>
           <button className="btn btn-ghost" onClick={() => setUrl('https://github.com/pallets/flask')}>
-            Try: Flask
+            Sinab ko'ring: Flask
           </button>
           <button className="btn btn-ghost" onClick={() => setUrl('https://github.com/psf/requests')}>
-            Try: Requests
+            Sinab ko'ring: Requests
           </button>
         </div>
       </div>
@@ -952,15 +1080,15 @@ function GithubPage() {
       {loading && (
         <div className="card">
           <div className="loading-bar"><div className="loading-bar-fill"></div></div>
-          <Loading msg="Cloning repository and scanning Python files..." />
+          <Loading msg="Repozitoriy klonlanmoqda va Python fayllar skanerlanoqda..." />
           <p style={{textAlign:'center', fontSize:13, color:'var(--text3)', marginTop:8}}>
-            This may take a moment for large repositories.
+            Katta repozitoriyalar uchun biroz vaqt ketishi mumkin.
           </p>
         </div>
       )}
       {result && !loading && (
         <div className="card fade-in">
-          <div className="card-title">Results</div>
+          <div className="card-title">Natijalar</div>
           <div style={{fontSize:12, fontFamily:'var(--mono)', color:'var(--text3)', marginBottom:12}}>
             🐙 {result.filename}
           </div>
@@ -974,63 +1102,88 @@ function GithubPage() {
 // ── Home page ─────────────────────────────────────────────────────────────────
 function HomePage({ navigate }) {
   return (
-    <div className="fade-in">
-      <div className="page-header">
-        <h2>{Icons.spark} Python Code Analysis System</h2>
-        <p>Detect syntax errors and security vulnerabilities in your Python code.</p>
+
+    <>
+      <div className="fade-in">
+        <div className="page-header">
+          <h2>{Icons.spark} Python kod tahlil tizimi</h2>
+          <p>Python kodingizdagi sintaksis xatolar va xavfsizlik zaifliklarini aniqlang.</p>
+        </div>
+
+        <div className="home-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 16,
+          marginTop: 24,
+          marginBottom: 32 // Pastdagi kartadan biroz masofa
+        }}>
+          <div className="home-card" onClick={() => navigate('text')}>
+            <div className="hc-icon gradient-blue">⌨️</div>
+            <h3>Matn tahlilchisi</h3>
+            <p>Koddan nusxa ko'chirib joylang va bir zumda tahlil natijalarini oling.</p>
+          </div>
+
+          <div className="home-card" onClick={() => navigate('file')}>
+            <div className="hc-icon gradient-purple">📄</div>
+            <h3>Fayl yuklash</h3>
+            <p>Sintaksis va xavfsizlikni tekshirish uchun bitta .py faylini yuklang.</p>
+          </div>
+
+          <div className="home-card" onClick={() => navigate('zip')}>
+            <div className="hc-icon gradient-cyan">🗜️</div>
+            <h3>ZIP arxiv</h3>
+            <p>ZIP arxiv ichidagi barcha Python fayllarini bir vaqtning o'zida tahlil qiling.</p>
+          </div>
+
+          <div className="home-card" onClick={() => navigate('github')}>
+            <div className="hc-icon gradient-green">🐙</div>
+            <h3>GitHub Repo</h3>
+            <p>Istalgan ochiq GitHub repozitoriyasini klonlang va avtomatik skanerlang.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="home-grid">
-        <div className="home-card" onClick={() => navigate('text')}>
-          <div className="hc-icon gradient-blue">⌨️</div>
-          <h3>Text Analyzer</h3>
-          <p>Paste code directly and get instant analysis results.</p>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="card-title" style={{ marginBottom: 16, fontWeight: 'bold' }}>
+          Biz nimalarni aniqlay olamiz:
         </div>
-        <div className="home-card" onClick={() => navigate('file')}>
-          <div className="hc-icon gradient-purple">📄</div>
-          <h3>File Upload</h3>
-          <p>Upload a single .py file for syntax and security scanning.</p>
-        </div>
-        <div className="home-card" onClick={() => navigate('zip')}>
-          <div className="hc-icon gradient-cyan">🗜️</div>
-          <h3>ZIP Archive</h3>
-          <p>Analyze all Python files inside a ZIP archive at once.</p>
-        </div>
-        <div className="home-card" onClick={() => navigate('github')}>
-          <div className="hc-icon gradient-green">🐙</div>
-          <h3>GitHub Repo</h3>
-          <p>Clone and scan any public GitHub repository automatically.</p>
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="card-title">What we detect</div>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px,1fr))', gap:12}}>
+        <div style={{
+          display: 'grid',
+          // Kompyuterda 3 ta ustun, mobil qurilmalarda avtomatik moslashadi
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 12
+        }}>
           {[
-            ['🐛', 'Syntax Errors', 'Invalid Python syntax caught by AST parser'],
-            ['⚡', 'eval() / exec()', 'Dangerous code execution functions'],
-            ['🖥️', 'Subprocess Usage', 'Shell command injection risks'],
-            ['🔑', 'Hardcoded Secrets', 'Passwords, API keys, tokens in code'],
-            ['📂', 'File Operations', 'Unsafe file reads and deletions'],
-            ['📦', 'Dangerous Imports', 'Risky module imports detected'],
+            ['🐛', 'Sintaksis xatolar', 'AST parser tomonidan aniqlangan noto‘g‘ri Python sintaksisi'],
+            ['⚡', 'eval() / exec()', 'Kodni ixtiyoriy bajarish imkonini beruvchi xavfli funksiyalar'],
+            ['🖥️', 'Subprocess-dan foydalanish', 'Shell buyruqlari orqali tizimga kirib borish (injection) xavfi'],
+            ['🔑', 'Ochiq qolgan sirlar', 'Kod ichiga yozib ketilgan parollar, API kalitlari va tokenlar'],
+            ['📂', 'Fayl amaliyotlari', 'Fayllarni xavfsiz bo‘lmagan tarzda o‘qish yoki o‘chirish amallari'],
+            ['📦', 'Xavfli importlar', 'Tizim xavfsizligiga tahdid soluvchi kutubxonalar aniqlanganda']
           ].map(([icon, title, desc]) => (
             <div key={title} style={{
-              background:'var(--bg2)', border:'1px solid var(--border)',
-              borderRadius:8, padding:'14px 16px'
+              background: 'var(--bg2)',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column'
             }}>
-              <div style={{fontSize:20, marginBottom:6}}>{icon}</div>
-              <div style={{fontSize:13, fontWeight:700, marginBottom:3}}>{title}</div>
-              <div style={{fontSize:12, color:'var(--text3)'}}>{desc}</div>
+              <div style={{ fontSize: 24, marginBottom: 8 }}>{icon}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 5 }}>{title}</div>
+              <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: '1.4' }}>
+                {desc}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       <div className="card">
-        <div className="card-title">API Status</div>
+        <div className="card-title">API Holati</div>
         <ApiStatus />
       </div>
-    </div>
+    </>
   );
 }
 
@@ -1040,23 +1193,25 @@ function ApiStatus() {
 
   useEffect(() => {
     API.get('/health')
-      .then(() => setStatus('online'))
-      .catch(() => setStatus('offline'));
+            .then(() => setStatus('online'))
+            .catch(() => setStatus('offline'));
   }, []);
 
   if (status === 'checking') return (
-    <div style={{display:'flex', alignItems:'center', gap:8, color:'var(--text2)', fontSize:14}}>
-      <span className="spinner"></span> Connecting to backend...
-    </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text2)', fontSize: 14}}>
+            <span className="spinner"></span> Serverga ulanilmoqda...
+          </div>
   );
 
   return (
-    <div className={`alert ${status === 'online' ? 'alert-success' : 'alert-error'}`}>
-      {status === 'online' ? '✅' : '❌'}
-      Backend API is <strong>{status}</strong>
-      {status === 'offline' && ' — Start the FastAPI server: '}
-      {status === 'offline' && <code style={{fontFamily:'var(--mono)', fontSize:12, marginLeft:4}}>uvicorn app.main:app --reload</code>}
-    </div>
+          <div className={`alert ${status === 'online' ? 'alert-success' : 'alert-error'}`}>
+            {status === 'online' ? '✅' : '❌'}
+            Backend API <strong>{status === 'online' ? 'ishlayapti' : 'ishlamayapti'}</strong>
+            {status === 'offline' && ' — FastAPI serverni ishga tushiring: '}
+            {status === 'offline' &&
+                    <code style={{fontFamily: 'var(--mono)', fontSize: 12, marginLeft: 4}}>uvicorn app.main:app
+                      --reload</code>}
+          </div>
   );
 }
 
@@ -1065,32 +1220,32 @@ function App() {
   const [page, setPage] = useState('home');
 
   const navItems = [
-    { id: 'home', label: 'Dashboard', icon: '🏠' },
-    { id: 'text', label: 'Text Analyzer', icon: '⌨️' },
-    { id: 'file', label: 'File Upload', icon: '📄' },
-    { id: 'zip', label: 'ZIP Archive', icon: '🗜️' },
-    { id: 'github', label: 'GitHub Repo', icon: '🐙' },
+    {id: 'home', label: 'Bosh sahifa', icon: '🏠'},
+    {id: 'text', label: 'Matn tahlilchisi', icon: '⌨️'},
+    {id: 'file', label: 'Fayl yuklash', icon: '📄'},
+    {id: 'zip', label: 'ZIP arxiv', icon: '🗜️'},
+    {id: 'github', label: 'GitHub Repo', icon: '🐙'},
   ];
 
   const pages = {
-    home: <HomePage navigate={setPage} />,
-    text: <TextPage />,
-    file: <FilePage />,
-    zip: <ZipPage />,
-    github: <GithubPage />,
+    home: <HomePage navigate={setPage}/>,
+    text: <TextPage/>,
+    file: <FilePage/>,
+    zip: <ZipPage/>,
+    github: <GithubPage/>,
   };
 
   return (
-    <div className="app">
-      <nav className="sidebar">
-        <div className="logo">
+          <div className="app">
+            <nav className="sidebar">
+              <div className="logo">
           <div className="logo-icon">🛡️</div>
           <h1>PyAnalyzer</h1>
           <p>v1.0.0 · MVP</p>
         </div>
 
         <div className="nav">
-          <div className="nav-label">Navigation</div>
+          <div className="nav-label">Navigatsiya</div>
           {navItems.map(item => (
             <button
               key={item.id}
@@ -1104,7 +1259,7 @@ function App() {
         </div>
 
         <div className="sidebar-footer">
-          Python Code Analysis<br />
+          Python kodi tahlili<br />
           FastAPI + React MVP
         </div>
       </nav>

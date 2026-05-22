@@ -3,7 +3,7 @@ import ast
 import logging
 from typing import List
 
-from app.models.analysis_result import Issue
+from ..models.analysis_result import Issue
 
 logger = logging.getLogger(__name__)
 

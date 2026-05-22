@@ -2,6 +2,9 @@
 import logging
 import shutil
 from pathlib import Path
+import os
+
+import stat
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +27,13 @@ def read_file(path: Path) -> str:
 
 
 def cleanup(path: Path) -> None:
-    """Remove a file or directory silently."""
     try:
         if path.is_dir():
-            shutil.rmtree(path)
+            # Windows uchun maxsus o'chirish
+            def remove_readonly(func, path, _):
+                os.chmod(path, stat.S_IWRITE)
+                func(path)
+            shutil.rmtree(path, onerror=remove_readonly)
         elif path.exists():
             path.unlink()
     except Exception as e:
